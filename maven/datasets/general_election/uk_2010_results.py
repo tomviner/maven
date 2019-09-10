@@ -105,7 +105,6 @@ class UK2010Results:
                 )
                 return
             warnings.warn(
-                # TODO: why doesn't f string formatting work here?
                 "Received status 404 when trying to retrieve {}{}".format(url, filename)
             )
         raise RuntimeError("Unable to download UK 2010 General Election results data.")
@@ -168,7 +167,6 @@ class UK2010Results:
         # columns relating to Press Association Reference, Constituency Name,
         # Region, Election Year, and Electorate.
         #
-        # TODO seems as though this could be done using .lower() and .title()
         results.columns = [
             self.parties_lookup[x] if x in self.parties_lookup else x
             for x in results.columns
@@ -185,7 +183,6 @@ class UK2010Results:
             self.uk_regions_to_NI_scotland_london_and_not_london
         )
 
-        # TODO - (is the choice of 237 arbitary)
         assert results.loc[237.0, "geo"] == "London"
 
         # Who won?
