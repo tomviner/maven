@@ -51,25 +51,33 @@ class UK2010Results:
         processed_results_full_location = (self.directory / 'processed' / processed_results_full_filename)
         os.makedirs(self.directory / 'processed', exist_ok=True)  # create directory if it doesn't exist
 
-        # TODO: Refactor these sections into functions to make it easier to read.
-
         ##########################
         # GENERAL ELECTION RESULTS
         ##########################
         print('Read and clean GE2010-results-flatfile-website.xls')
 
-        # Import general election results
-        results = pd.read_excel(self.directory / 'raw' / 'GE2010-results-flatfile-website.xls',
-                                sheet_name='Party vote share')
+        # Import general election results from the correct sheet, there are two
+        # sheets, the other being 'Party Abbreviations'
+        results = pd.read_excel(
+            self.directory / "raw" / self.sources[0][1], sheet_name="Party vote share",
+        )
 
         # Remove rows where Constituency Name is blank
         blank_rows = results['Constituency Name'].isnull()
         results = results[-blank_rows].copy()
 
-        # Set NA vals to zero
-        for col in results.columns[6:]:
-            results[col] = results[col].fillna(0)
-        assert results.shape == (650, 144)
+        # NA represents zero votes for that party within that consituency, so
+        # set them to zero.
+        results.to_csv("d2.csv")
+        for party_vote_result in results.columns[self.first_col_with_party_vote_info :]:
+            results[party_vote_result] = results[party_vote_result].fillna(0)
+
+        # missing rows/columns will impact further analysis
+        assert results.shape == (self.expected_row_dim, self.expected_col_dim,), (
+            f"Dimensions of data are incorrect, expect {self.expected_row_dim} rows"
+            f"and {self.expected_col_dim} columns. "
+            f"data has {results.shape[0]} rows, {results.shape[1]} cols"
+        )
 
         # Save this for convenience
         results_full = results.copy()
@@ -144,6 +152,7 @@ class UK2010Results:
         assert results.groupby('winner').count()['Constituency Name'].sort_values(ascending=False)[0] == 306
 
         # EXPORT
-        print(f'Exporting dataset to {processed_results_location.resolve()}')
-        results.to_csv(processed_results_location, index=False)
-        results_full.to_csv(processed_results_full_location, index=False)
+        print(f"Exporting dataset to {self.processed_results_location.resolve()}")
+        results.to_csv(self.processed_results_location, index=False)
+        print(f"Exporting dataset to {self.processed_results_full_location.resolve()}")
+        results_full.to_csv(self.processed_results_full_location, index=False)
