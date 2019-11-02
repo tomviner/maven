@@ -4,6 +4,9 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+black = "==19.10b0"
+isort = "*"
+flake8 = "*"
 
 [packages]
 requests = "*"
@@ -11,6 +14,7 @@ pandas = "*"
 ipython = "*"
 xlrd = "*"
 pytest = "*"
+appnope = {version = "*", sys_platform = "== 'darwin'"}
 
 [requires]
 python_version = "3.7"
