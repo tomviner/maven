@@ -4,4 +4,4 @@ from .uk_2015_results import UK2015Results
 from .uk_polls import UKPolls
 
 
-__all__ = ['UK2010Results', 'UK2015Model', 'UK2015Results', 'UKPolls']
+__all__ = ["UK2010Results", "UK2015Model", "UK2015Results", "UKPolls"]
