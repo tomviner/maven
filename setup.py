@@ -1,5 +1,6 @@
 import setuptools
 
+
 with open('README.md', 'r') as f:
     long_description = f.read()
 
@@ -7,8 +8,10 @@ with open('README.md', 'r') as f:
 setuptools.setup(
     name='maven',
     version='0.0.6',
-    description=("Maven's goal is to reduce the time data scientists spend on data cleaning and preparation "
-                 "by providing easy access to open datasets in both raw and processed formats."),
+    description=(
+        "Maven's goal is to reduce the time data scientists spend on data cleaning and preparation "
+        "by providing easy access to open datasets in both raw and processed formats."
+    ),
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords='maven open data etl pipeline',
@@ -17,11 +20,7 @@ setuptools.setup(
     url='https://github.com/john-sandall/maven',
     packages=setuptools.find_packages(),
     include_package_data=True,
-    install_requires=[
-        'pandas',
-        'requests',
-        'xlrd',
-    ],
+    install_requires=['pandas', 'requests', 'xlrd',],
     setup_requires=['pytest-runner'],
     test_suite='tests',
     tests_require=['pytest'],

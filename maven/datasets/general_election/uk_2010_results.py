@@ -28,10 +28,14 @@ class UK2010Results:
         target = self.directory / 'raw'
         os.makedirs(target, exist_ok=True)  # create directory if it doesn't exist
         sources = [
-            ('http://www.electoralcommission.org.uk/__data/assets/excel_doc/0003/105726/',
-             'GE2010-results-flatfile-website.xls'),
-            ('https://s3-eu-west-1.amazonaws.com/sixfifty/',
-             'GE2010-results-flatfile-website.xls')
+            (
+                'http://www.electoralcommission.org.uk/__data/assets/excel_doc/0003/105726/',
+                'GE2010-results-flatfile-website.xls',
+            ),
+            (
+                'https://s3-eu-west-1.amazonaws.com/sixfifty/',
+                'GE2010-results-flatfile-website.xls',
+            ),
         ]
         for url, filename in sources:
             response = requests.get(url + filename)
@@ -40,16 +44,24 @@ class UK2010Results:
                     f.write(response.content)
                 print(f'Successfully downloaded raw data into {target.resolve()}')
                 return
-            warnings.warn(f'Received status 404 when trying to retrieve {url}{filename}')
+            warnings.warn(
+                f'Received status 404 when trying to retrieve {url}{filename}'
+            )
         raise RuntimeError('Unable to download UK 2010 General Election results data.')
 
     def process(self):
         """Process results data for the United Kingdom's 2010 General Election."""
         processed_results_filename = 'general_election-uk-2010-results.csv'
         processed_results_full_filename = 'general_election-uk-2010-results-full.csv'
-        processed_results_location = (self.directory / 'processed' / processed_results_filename)
-        processed_results_full_location = (self.directory / 'processed' / processed_results_full_filename)
-        os.makedirs(self.directory / 'processed', exist_ok=True)  # create directory if it doesn't exist
+        processed_results_location = (
+            self.directory / 'processed' / processed_results_filename
+        )
+        processed_results_full_location = (
+            self.directory / 'processed' / processed_results_full_filename
+        )
+        os.makedirs(
+            self.directory / 'processed', exist_ok=True
+        )  # create directory if it doesn't exist
 
         # TODO: Refactor these sections into functions to make it easier to read.
 
@@ -59,8 +71,10 @@ class UK2010Results:
         print('Read and clean GE2010-results-flatfile-website.xls')
 
         # Import general election results
-        results = pd.read_excel(self.directory / 'raw' / 'GE2010-results-flatfile-website.xls',
-                                sheet_name='Party vote share')
+        results = pd.read_excel(
+            self.directory / 'raw' / 'GE2010-results-flatfile-website.xls',
+            sheet_name='Party vote share',
+        )
 
         # Remove rows where Constituency Name is blank
         blank_rows = results['Constituency Name'].isnull()
@@ -93,39 +107,51 @@ class UK2010Results:
             # Wales
             'PC': 'pc',
             # Other
-            'Other': 'other'
+            'Other': 'other',
         }
-        other_parties = list(set(results.columns) - set(results.columns[:6]) - set(parties_lookup.keys()))
+        other_parties = list(
+            set(results.columns) - set(results.columns[:6]) - set(parties_lookup.keys())
+        )
         results['Other'] = results.loc[:, other_parties].sum(axis=1)
-        results = results.loc[:, list(results.columns[:6]) + list(parties_lookup.keys())]
+        results = results.loc[
+            :, list(results.columns[:6]) + list(parties_lookup.keys())
+        ]
 
         # Rename parties
-        results.columns = [parties_lookup[x] if x in parties_lookup else x for x in results.columns]
+        results.columns = [
+            parties_lookup[x] if x in parties_lookup else x for x in results.columns
+        ]
 
         # Calculate constituency level vote share
         for party in parties_lookup.values():
             results[party + '_pc'] = results[party] / results['Votes']
 
         # Create PANO -> geo lookup
-        results['geo'] = results.Region.map({
-            'East Midlands': 'England_not_london',
-            'Eastern': 'England_not_london',
-            'London': 'London',
-            'North East': 'England_not_london',
-            'North West': 'England_not_london',
-            'Northern Ireland': 'NI',
-            'Scotland': 'Scotland',
-            'South East': 'England_not_london',
-            'South West': 'England_not_london',
-            'Wales': 'Wales',
-            'West Midlands': 'England_not_london',
-            'Yorkshire and the Humber': 'England_not_london',
-            })
+        results['geo'] = results.Region.map(
+            {
+                'East Midlands': 'England_not_london',
+                'Eastern': 'England_not_london',
+                'London': 'London',
+                'North East': 'England_not_london',
+                'North West': 'England_not_london',
+                'Northern Ireland': 'NI',
+                'Scotland': 'Scotland',
+                'South East': 'England_not_london',
+                'South West': 'England_not_london',
+                'Wales': 'Wales',
+                'West Midlands': 'England_not_london',
+                'Yorkshire and the Humber': 'England_not_london',
+            }
+        )
         assert results.loc[237.0, 'geo'] == 'London'
 
         # Calculate geo-level vote share
         # TODO: Do we use this?
-        results_by_geo = results.loc[:, ['Votes', 'geo'] + list(parties_lookup.values())].groupby('geo').sum()
+        results_by_geo = (
+            results.loc[:, ['Votes', 'geo'] + list(parties_lookup.values())]
+            .groupby('geo')
+            .sum()
+        )
         results_by_geo_voteshare = results_by_geo.div(results_by_geo['Votes'], axis=0)
         del results_by_geo_voteshare['Votes']
 
@@ -141,7 +167,12 @@ class UK2010Results:
 
         results['winner'] = results_full.apply(winner, axis=1)
         # Check Labour won 306 seats in 2010.
-        assert results.groupby('winner').count()['Constituency Name'].sort_values(ascending=False)[0] == 306
+        assert (
+            results.groupby('winner')
+            .count()['Constituency Name']
+            .sort_values(ascending=False)[0]
+            == 306
+        )
 
         # EXPORT
         print(f'Exporting dataset to {processed_results_location.resolve()}')

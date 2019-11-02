@@ -29,7 +29,9 @@ class UKPolls:
     def retrieve(self):
         """Retrieve General Election polling data for the United Kingdom."""
         target_directory = self.directory / 'processed'
-        os.makedirs(target_directory, exist_ok=True)  # create directory if it doesn't exist
+        os.makedirs(
+            target_directory, exist_ok=True
+        )  # create directory if it doesn't exist
         base_url = 'https://s3-eu-west-1.amazonaws.com/sixfifty/'
         files = [
             # (source_filename, target_filename)
@@ -37,16 +39,20 @@ class UKPolls:
             ('polls_london.csv', 'general_election-london-polls.csv'),
             ('polls_scotland.csv', 'general_election-scotland-polls.csv'),
             ('polls_wales.csv', 'general_election-wales-polls.csv'),
-            ('polls_ni.csv', 'general_election-ni-polls.csv')
+            ('polls_ni.csv', 'general_election-ni-polls.csv'),
         ]
         for source_filename, target_filename in files:
             response = requests.get(base_url + source_filename)
             if response.status_code == 200:
                 with open(target_directory / target_filename, 'wb') as f:
                     f.write(response.content)
-                print(f'Successfully downloaded raw data into {target_directory.resolve()}')
+                print(
+                    f'Successfully downloaded raw data into {target_directory.resolve()}'
+                )
             else:
-                warnings.warn(f'Received status 404 when trying to retrieve {base_url}{source_filename}')
+                warnings.warn(
+                    f'Received status 404 when trying to retrieve {base_url}{source_filename}'
+                )
 
     def process(self):
         pass
