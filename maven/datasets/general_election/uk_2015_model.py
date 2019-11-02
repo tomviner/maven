@@ -6,8 +6,8 @@ Usage:
     > maven.get('general-election/UK/2015/model', data_directory='./data/')
 """
 import os
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 import pandas as pd
 
@@ -52,7 +52,11 @@ class UK2015Model:
                 "processed",
                 "general_election-uk-2015-results-full.csv",
             ),
-            ("general-election/UK/polls", "processed", "general_election-uk-polls.csv"),
+            (
+                "general-election/UK/polls",
+                "processed",
+                "general_election-uk-polls.csv",
+            ),
             (
                 "general-election/UK/polls",
                 "processed",
@@ -68,7 +72,11 @@ class UK2015Model:
                 "processed",
                 "general_election-wales-polls.csv",
             ),
-            ("general-election/UK/polls", "processed", "general_election-ni-polls.csv"),
+            (
+                "general-election/UK/polls",
+                "processed",
+                "general_election-ni-polls.csv",
+            ),
         ]
         for identifier, data_type, filename in data:
             source_target = f"{identifier}/{data_type}/{filename}"
@@ -76,7 +84,7 @@ class UK2015Model:
                 print(f"Dataset {identifier} not found - retrieving now")
                 maven.get(identifier, data_directory=data_directory)
             shutil.copyfile(
-                src=data_directory / source_target, dst=destination_target / filename
+                src=data_directory / source_target, dst=destination_target / filename,
             )
 
     def process(self):
@@ -210,7 +218,7 @@ class UK2015Model:
                 polls_17_tmp.sample_size * polls_17_tmp[p]
             ).sum() / polls_17_tmp.sample_size.sum()
         polls_17["Scotland"] = pd.Series(
-            polls_17["Scotland"], index=["con", "lab", "ld", "ukip", "snp", "grn"]
+            polls_17["Scotland"], index=["con", "lab", "ld", "ukip", "snp", "grn"],
         )
 
         # ...and Wales
@@ -288,7 +296,14 @@ class UK2015Model:
         polls_17["England_not_london"] = pd.Series(polls_17["England_not_london"])
 
         # Fill in the gaps
-        for geo in ["UK", "Scotland", "Wales", "NI", "London", "England_not_london"]:
+        for geo in [
+            "UK",
+            "Scotland",
+            "Wales",
+            "NI",
+            "London",
+            "England_not_london",
+        ]:
             for party in ["con", "lab", "ld", "ukip", "grn", "snp", "pc"]:
                 if party not in polls_17[geo]:
                     # print("Adding {} to {}".format(party, geo))
@@ -300,7 +315,14 @@ class UK2015Model:
         )
 
         # Add Other
-        for geo in ["UK", "Scotland", "Wales", "NI", "London", "England_not_london"]:
+        for geo in [
+            "UK",
+            "Scotland",
+            "Wales",
+            "NI",
+            "London",
+            "England_not_london",
+        ]:
             if "other" not in polls_17[geo]:
                 polls_17[geo]["other"] = 1 - sum(polls_17[geo])
 
@@ -308,12 +330,17 @@ class UK2015Model:
         polls_17["UK"]["other"] = 0.03  # ge.other.sum() / ge['Valid Votes'].sum()
         polls_17["England_not_london"][
             "other"
-        ] = (
-            0.01
-        )  # ge[ge.geo == 'England_not_london'].other.sum() / ge[ge.geo == 'England_not_london']['Valid Votes'].sum()
+        ] = 0.01  # ge[ge.geo == 'England_not_london'].other.sum() / ge[ge.geo == 'England_not_london']['Valid Votes'].sum()
 
         # Reweight to 100%
-        for geo in ["UK", "Scotland", "Wales", "NI", "London", "England_not_london"]:
+        for geo in [
+            "UK",
+            "Scotland",
+            "Wales",
+            "NI",
+            "London",
+            "England_not_london",
+        ]:
             polls_17[geo] = polls_17[geo] / polls_17[geo].sum()
 
         # Export polling data
@@ -424,7 +451,8 @@ class UK2015Model:
                 lambda row: swing_17.loc[row["geo"]][party], axis=1
             )
             ge_2015[party + "_2017_forecast"] = ge_2015.apply(
-                lambda x: x[party + "_pc"] * (1 + swing_17.loc[x["geo"]][party]), axis=1
+                lambda x: x[party + "_pc"] * (1 + swing_17.loc[x["geo"]][party]),
+                axis=1,
             )
 
         def win_17(row):
@@ -556,12 +584,15 @@ class UK2015Model:
             "swing_forecast_win",
         ]
         df = pd.merge(
-            left=df, right=swing_forecast_win, on=["Press Association Reference"]
+            left=df, right=swing_forecast_win, on=["Press Association Reference"],
         )
 
         # actual_win_now
         actual_win_now = ge_2010[["Press Association Reference", "act_15"]]
-        actual_win_now.columns = ["Press Association Reference", "actual_win_now"]
+        actual_win_now.columns = [
+            "Press Association Reference",
+            "actual_win_now",
+        ]
         df = pd.merge(left=df, right=actual_win_now, on=["Press Association Reference"])
 
         # actual_pc_now
@@ -600,7 +631,7 @@ class UK2015Model:
         ########################################
         print(f"Exporting 2010->2015 model dataset to {processed_directory.resolve()}")
         df.to_csv(
-            processed_directory / "general_election-uk-2015-model.csv", index=False
+            processed_directory / "general_election-uk-2015-model.csv", index=False,
         )
 
         ######################
@@ -715,7 +746,7 @@ class UK2015Model:
             "swing_forecast_win",
         ]
         df15 = pd.merge(
-            left=df15, right=swing_forecast_win, on=["Press Association ID Number"]
+            left=df15, right=swing_forecast_win, on=["Press Association ID Number"],
         )
 
         # dummy party
@@ -735,5 +766,5 @@ class UK2015Model:
         ##########################################
         print(f"Exporting 2015->2017 model dataset to {processed_directory.resolve()}")
         df15.to_csv(
-            processed_directory / "general_election-uk-2017-model.csv", index=False
+            processed_directory / "general_election-uk-2017-model.csv", index=False,
         )

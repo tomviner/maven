@@ -117,7 +117,6 @@ class UK2010Results:
 
         #######################################################################
 
-
         ##########################
         # GENERAL ELECTION RESULTS
         ##########################
@@ -126,7 +125,7 @@ class UK2010Results:
         # Import general election results from the correct sheet, there are two
         # sheets, the other being 'Party Abbreviations'
         results = pd.read_excel(
-            self.directory / "raw" / self.sources[0][1], sheet_name="Party vote share"
+            self.directory / "raw" / self.sources[0][1], sheet_name="Party vote share",
         )
 
         # Remove rows where Constituency Name is blank - in the spreadsheet
@@ -141,7 +140,7 @@ class UK2010Results:
             results[party_vote_result] = results[party_vote_result].fillna(0)
 
         # missing rows/columns will impact further analysis
-        assert results.shape == (self.expected_row_dim, self.expected_col_dim), (
+        assert results.shape == (self.expected_row_dim, self.expected_col_dim,), (
             f"Dimensions of data are incorrect, expect {self.expected_row_dim} rows"
             f"and {self.expected_col_dim} columns. "
             f"data has {results.shape[0]} rows, {results.shape[1]} cols"
@@ -218,4 +217,3 @@ class UK2010Results:
         results.to_csv(self.processed_results_location, index=False)
         print(f"Exporting dataset to {self.processed_results_full_location.resolve()}")
         results_full.to_csv(self.processed_results_full_location, index=False)
-
